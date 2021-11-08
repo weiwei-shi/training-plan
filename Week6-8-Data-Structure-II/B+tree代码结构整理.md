@@ -210,7 +210,7 @@ page id和键值对偏移其中一个不同就不相等
 `enum class OpType { READ = 0, INSERT, DELETE };`  
 增加参数：虚拟根节点锁`ReaderWriterLatch root_id_latch_`
 ##### 2.增加函数ReleaseLatchQueue
-释放前面拿到的锁，同时当该队列为空时要释放虚拟根节点锁
+释放前面页面拿到的锁以及页面的pin操作，同时当该队列为空时要释放虚拟根节点锁
 ##### 3.增加函数IsSafe
 判断插入和删除操作是否安全  
 1.如果是插入操作，则只要当前node的size处于安全状态即 + 1 之后不会产生分裂，则为安全  
@@ -220,15 +220,23 @@ page id和键值对偏移其中一个不同就不相等
 删除在删除队列中的页（由于该页在进程进行中页面加锁导致无法进行删除操作，所以得等到进程结束锁释放掉之后再进行删除）
 ##### 5.FindLeafPage
 由于该函数被插入和删除都进行了调用，所以需要增加函数参数Optype和Transaction  
-每次往下找到页面时要判断是否是读写操作以及该操作是否安全，同时要将该页加入加锁页的集合
-##### 6.InsertIntoLeaf
-
-##### 7.
+每次往下找到页面时要判断是否是读写操作以及该操作是否安全，同时要将该页加入加锁页的集合。注意需要判断transaction是否为空
+##### 6.GetValue
+将return之前的unpin操作换为ReleaseLatchQueue，注意需要判断transaction是否为空
+##### 7.Insert
+刚开始要加虚拟根节点锁，如果建新树结束后要释放虚拟根节点锁
+##### 8.InsertIntoLeaf
+将return之前的unpin操作换为ReleaseLatchQueue
+##### 9.Remove
+刚开始要加虚拟根节点锁，如果树为空要释放虚拟根节点锁，并将return之前的unpin操作换为ReleaseLatchQueue，结束后调用DeletePages删除页面
+##### 10.CoalesceOrRedistribute
+调整根节点之后，要将删除的页面加入删除页面集合。  
+对于其中的合并操作，结束后也要要将删除的页面加入删除页面集合。
+##### 11.begin，Begin，end
+刚开始要加虚拟根节点锁
 
 ## 对index_iterator.cpp函数的修改
+++操作时，需要释放前一个页面的读锁，并对当前页面加读锁
 
-
-## 对b\_plus_tree.cpp参数的修改
-增加参数`root_id_latch_`代表根节点锁
 
 
