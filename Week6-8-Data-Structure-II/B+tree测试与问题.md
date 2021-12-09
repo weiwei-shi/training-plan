@@ -8,3 +8,10 @@
 ##### 3.测试插入的时候遇到读空页的情况
 ![问题1](images/error1.png)
 解决：写迭代器里面有个函数`operator++`，if条件语句需要判断该页的兄弟节点的page id是否为空
+
+## 测试结果
+本地测试全部通过，网页测试通过测试点1，测试点2还在调试。  
+![insert](images/insertTest.png)  
+![delete](images/deleteTest.png)  
+![concurrent](images/concurrentTest.png)  
+![checkpoint1](images/checkpoint1Test.png)  
