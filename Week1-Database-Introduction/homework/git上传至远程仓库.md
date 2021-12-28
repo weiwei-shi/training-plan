@@ -11,6 +11,8 @@
     cd
 ####2、连接远程仓库
     git remote add origin https://github.com/weiwei-shi/training-plan.git
+	git remote rm origin(删除关联的origin的远程库)
+	git remote add origin （地址）（添加远程库）
 ####3、切换到想要上传的分支
     git checkout training-plan-2021
 	git checkout -b newBranch(创建并切换分支）
