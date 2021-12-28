@@ -44,6 +44,13 @@ bool DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) {
     LockExclusive(*rid);
     table_info_->table_->MarkDelete(*rid,exec_ctx_->GetTransaction());
     for(auto &index_info:table_indexes_){
+      IndexWriteRecord index_record{*rid,
+                                    plan_->TableOid(),
+                                    WType::DELETE,
+                                    *tuple,
+                                    index_info->index_oid_,
+                                    GetExecutorContext()->GetCatalog()};
+      GetExecutorContext()->GetTransaction()->AppendTableWriteRecord(index_record);
       auto key_tuple = tuple->KeyFromTuple(table_info_->schema_,index_info->key_schema_,index_info->index_->GetKeyAttrs());
       index_info->index_->DeleteEntry(key_tuple,*rid,exec_ctx_->GetTransaction());
     }

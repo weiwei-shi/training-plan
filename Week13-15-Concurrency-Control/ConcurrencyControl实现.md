@@ -103,6 +103,7 @@
 注意：由于使用tableIterator遍历表，每次next结束时会将tableIterator++，使其指向下一个未访问的tuple。而如果++tableIterator后，此时本线程还未获取tableIterator指向的tuple的读锁，其他线程这时将tableIterator指向的tuple删除了，本线程获得读锁之后就会访问到一个已经删除的tuple。  
 解决：获取读锁后，再使用GetTuple读一次tuple的值。如果false，说明该tuple被删除了，则跳过该tuple。
 #### update/delete/insert/join/Agg
-1.update/delete/insert在修该元组之前加写锁：先检查事务是否获取了它的sharedLock。如果已经有shardLock，则调用LockUpgrade升级为ExclusiveLock。如果没有sharedLock，则先检查是否持有ExclusiveLock。若有则直接返回，否则调用LockExclusive获得写锁。  
-2.join和agg都是调用seq，所以不需要单独处理。
+1.update/delete/insert在修该元组之前加写锁：先检查事务是否获取了它的sharedLock。如果已经有shardLock，则调用LockUpgrade升级为ExclusiveLock。如果没有sharedLock，则先检查是否持有ExclusiveLock。若有则直接返回，否则调用LockExclusive获得写锁。
+2.update/delete/insert在修改元组后需要将修改记录加入索引的写集种，当回滚时会进行撤销这些记录。   
+3.join和agg都是调用seq，所以不需要单独处理。
 

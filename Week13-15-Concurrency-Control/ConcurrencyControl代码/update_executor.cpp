@@ -45,6 +45,13 @@ bool UpdateExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) {
     Tuple update_tuple = GenerateUpdatedTuple(*tuple);
     table_info_->table_->UpdateTuple(update_tuple,*rid,exec_ctx_->GetTransaction());
     for(auto &index_info:table_indexes_){
+//      IndexWriteRecord index_record{*rid,
+//                                    plan_->TableOid(),
+//                                    WType::UPDATE,
+//                                    *tuple,
+//                                    index_info->index_oid_,
+//                                    GetExecutorContext()->GetCatalog()};
+//      GetExecutorContext()->GetTransaction()->AppendTableWriteRecord(index_record);
       auto key_tuple = tuple->KeyFromTuple(table_info_->schema_,index_info->key_schema_,index_info->index_->GetKeyAttrs());
       index_info->index_->DeleteEntry(key_tuple,*rid,exec_ctx_->GetTransaction());
       auto key_update_tuple = update_tuple.KeyFromTuple(table_info_->schema_,index_info->key_schema_,index_info->index_->GetKeyAttrs());

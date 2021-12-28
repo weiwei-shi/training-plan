@@ -45,32 +45,39 @@ void InsertExecutor::LockExclusive(RID &rid){
 }
 
 void InsertExecutor::InsertTuple(Tuple &insert_tuple, RID *rid) {
-    table_metadata_->table_->InsertTuple(insert_tuple, rid, exec_ctx_->GetTransaction());
-    for(auto &index_info:table_indexes_){
-        auto key_insert_tuple = insert_tuple.KeyFromTuple(table_metadata_->schema_,index_info->key_schema_,index_info->index_->GetKeyAttrs());
-        index_info->index_->InsertEntry(key_insert_tuple,*rid,exec_ctx_->GetTransaction());
-    }
+  table_metadata_->table_->InsertTuple(insert_tuple, rid, exec_ctx_->GetTransaction());
+  for(auto &index_info:table_indexes_){
+    IndexWriteRecord index_record{*rid,
+                                  plan_->TableOid(),
+                                  WType::INSERT,
+                                  insert_tuple,
+                                  index_info->index_oid_,
+                                  GetExecutorContext()->GetCatalog()};
+    GetExecutorContext()->GetTransaction()->AppendTableWriteRecord(index_record);
+    auto key_insert_tuple = insert_tuple.KeyFromTuple(table_metadata_->schema_,index_info->key_schema_,index_info->index_->GetKeyAttrs());
+    index_info->index_->InsertEntry(key_insert_tuple,*rid,exec_ctx_->GetTransaction());
+  }
 }
 
 bool InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) { 
-    if(plan_->IsRawInsert()){
-        while(iterator_ != plan_->RawValues().end()){
-            Tuple insert_tuple(*iterator_, &table_metadata_->schema_);
-            InsertTuple(insert_tuple,rid);
-            LockExclusive(*rid);
-            iterator_++;
-            //return true;
-        }
-        return false;
+  if(plan_->IsRawInsert()){
+    while(iterator_ != plan_->RawValues().end()){
+      Tuple insert_tuple(*iterator_, &table_metadata_->schema_);
+      InsertTuple(insert_tuple,rid);
+      LockExclusive(*rid);
+      iterator_++;
+      //return true;
     }
-    else{
-        while(child_executor_->Next(tuple,rid)){
-            InsertTuple(*tuple,rid);
-            LockExclusive(*rid);
-            //return true;
-        }
-        return false;
+    return false;
+  }
+  else{
+    while(child_executor_->Next(tuple,rid)){
+      InsertTuple(*tuple,rid);
+      LockExclusive(*rid);
+      //return true;
     }
+    return false;
+  }
 }
 
 }  // namespace bustub
