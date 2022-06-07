@@ -3,7 +3,9 @@
 cd  ../../..
 #### 2、使用`git clone`下载文件
 git clone git@github.com:weiwei-shi/training-plan.git
+
 git clone -b training-plan-2021 git@github.com:weiwei-shi/training-plan.git（克隆指定分支）
+
 注：使用http链接会因为代理出问题，直接使用git@
 
 ## 二、在本地做修改并上传
@@ -11,11 +13,15 @@ git clone -b training-plan-2021 git@github.com:weiwei-shi/training-plan.git（�
 cd
 #### 2、连接远程仓库
 git remote add origin https://github.com/weiwei-shi/training-plan.git
+
 git remote rm origin(删除关联的origin的远程库)
+
 git remote add origin （地址）（添加远程库）
 #### 3、切换到想要上传的分支
 git checkout training-plan-2021
+
 git checkout -b newBranch(创建并切换分支）
+
 git branch -d <branch>（删除分支）
 此时本地文件已切换到对应分支
 #### 4、在本地文件中添加自己的文件
